@@ -1,8 +1,8 @@
 import {getFilesList} from "./common";
 
-function delint(filesList: string[]) {
-}
+const delint = (filesList: string[]): string[] => {
+};
 
-export const htmlFilesParse = () => {
+export const htmlFilesParse = (files: string | string[]): string[] => {
     return delint(getFilesList(files));
 };
