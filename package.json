@@ -2,13 +2,18 @@
   "name": "extractor",
   "version": "0.0.1",
   "description": "ngx-translate tokent extractor",
-  "main": "index.ts",
+  "main": "./src/index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "ts-node ./src/index.ts"
   },
   "author": "pertsev.roman@gmail.com",
   "license": "ISC",
   "devDependencies": {
+    "@types/node": "^10.3.0",
     "typescript": "^2.9.1"
+  },
+  "dependencies": {
+    "ts-node": "^6.0.5",
+    "walk": "^2.3.13"
   }
 }
