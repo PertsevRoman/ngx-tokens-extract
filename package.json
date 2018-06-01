@@ -1,0 +1,14 @@
+{
+  "name": "extractor",
+  "version": "0.0.1",
+  "description": "ngx-translate tokent extractor",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "pertsev.roman@gmail.com",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^2.9.1"
+  }
+}
