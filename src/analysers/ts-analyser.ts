@@ -6,8 +6,14 @@ import {getFilesList} from "./common";
 const delint = (filesSrcs: string[]): string[] => {
     let res: string[] = [];
 
+    /**
+     *
+     * @param {ts.Node} node
+     * @param {ts.SyntaxKind} kind
+     * @return {ts.Node[]}
+     */
     const findNodes = (node: ts.Node, kind: ts.SyntaxKind): ts.Node[] => {
-        const childrenNodes: ts.Node[] = node.getChildren(this._sourceFile);
+        const childrenNodes: ts.Node[] = node.getChildren();
         const initialValue: ts.Node[] = node.kind === kind ? [node] : [];
 
         return childrenNodes.reduce((result: ts.Node[], childNode: ts.Node) => {
@@ -15,16 +21,32 @@ const delint = (filesSrcs: string[]): string[] => {
         }, initialValue);
     };
 
+    /**
+     *
+     * @param {ts.Node} node
+     * @return {ts.Node | null}
+     */
     const findConstructorNode = (node: ts.Node): ts.Node | null => {
         let constructorNode = findNodes(node, ts.SyntaxKind.Constructor);
         return constructorNode.length ? constructorNode[0] : null;
     };
 
+    /**
+     *
+     * @param {ts.Node} node
+     * @return {ts.Node[] | null}
+     */
     const findClassNodes = (node: ts.Node): ts.Node[] | null => {
         let classNodes = findNodes(node, ts.SyntaxKind.ClassDeclaration);
         return classNodes.length ? classNodes : null;
     };
 
+    /**
+     *
+     * @param {ts.Node} node
+     * @param {string} serviceName
+     * @return {ts.CallExpression[]}
+     */
     const getTranslateServiceCalls = (node: ts.Node, serviceName: string): ts.CallExpression[] => {
         let callNodes = findNodes(node, ts.SyntaxKind.CallExpression) as ts.CallExpression[];
         return callNodes.filter(callNode => {
@@ -57,6 +79,11 @@ const delint = (filesSrcs: string[]): string[] => {
         });
     };
 
+    /**
+     *
+     * @param {ts.CallExpression} callNode
+     * @return {string[] | null}
+     */
     const getTranslateCallParams = (callNode: ts.CallExpression): string[] | null => {
         if (!callNode.arguments.length) {
             return;
@@ -81,6 +108,11 @@ const delint = (filesSrcs: string[]): string[] => {
         return null;
     };
 
+    /**
+     *
+     * @param {ts.ConstructorDeclaration} constructorNode
+     * @return {string | null}
+     */
     const findTranslateServiceArg = (constructorNode: ts.ConstructorDeclaration): string | null => {
         let translateServiceParameter: ParameterDeclaration | undefined = constructorNode.parameters.find(parameter => {
             if (!parameter.modifiers) {
@@ -107,12 +139,16 @@ const delint = (filesSrcs: string[]): string[] => {
         return (translateServiceParameter.name as ts.Identifier).text;
     };
 
-    for (const sourcePath of filesSrcs) {
+    /**
+     *
+     * @param {string} sourcePath
+     */
+    const findClassLangServiceCalls = (sourcePath: string) => {
         const srcContent = fs.readFileSync(sourcePath).toString();
         const fileNode: ts.SourceFile = ts.createSourceFile(sourcePath, srcContent, ts.ScriptTarget.ES2015, true);
 
         const classNodes = findClassNodes(fileNode);
-        if (!classNodes) continue;
+        if (!classNodes) return;
 
         for (let classNode of classNodes) {
             const constructorNode = findConstructorNode(classNode);
@@ -131,6 +167,55 @@ const delint = (filesSrcs: string[]): string[] => {
                 }
             }
         }
+    };
+
+    function findTypeReferences(fileNode: ts.SourceFile): ts.TypeReferenceNode[] {
+        return findNodes(fileNode, ts.SyntaxKind.TypeReference) as ts.TypeReferenceNode[];
+    }
+
+    /**
+     *
+     * @param {string} sourcePath
+     */
+    const findRouteInits = (sourcePath: string) => {
+        const srcContent = fs.readFileSync(sourcePath).toString();
+        const fileNode: ts.SourceFile = ts.createSourceFile(sourcePath, srcContent, ts.ScriptTarget.ES2015, true);
+
+        const varDeclLists = findTypeReferences(fileNode);
+        varDeclLists.forEach((typeRef: ts.TypeReferenceNode) => {
+            const isRouteRef = typeRef.getText() == `Routes`;
+
+            if (!isRouteRef) return;
+
+            const varDeclNodes = typeRef.parent.getChildren(fileNode);
+            const routesArrayLiteral = varDeclNodes[varDeclNodes.length - 1];
+            if (routesArrayLiteral.kind == ts.SyntaxKind.ArrayLiteralExpression) {
+                (routesArrayLiteral as ts.ArrayLiteralExpression)
+                    .elements.forEach((obj: ts.ObjectLiteralExpression) => {
+                    obj.properties.forEach((routeProp: ts.PropertyAssignment) => {
+                        if (routeProp.name.getText() == `data`) {
+                            const dataEntry = routeProp.getChildren(fileNode);
+                            if (dataEntry[2].kind == ts.SyntaxKind.ObjectLiteralExpression) {
+                                (dataEntry[2] as ts.ObjectLiteralExpression)
+                                    .properties.forEach((dataProp: ts.PropertyAssignment) => {
+                                    if (dataProp.name.getText() == 'breadcrumb') {
+                                        const breadcrumbAssignment = dataProp.getChildren(fileNode);
+                                        if (breadcrumbAssignment[2].kind == ts.SyntaxKind.StringLiteral) {
+                                            res.push((breadcrumbAssignment[2] as ts.StringLiteral).text);
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    });
+                });
+            }
+        });
+    };
+
+    for (const sourcePath of filesSrcs) {
+        findClassLangServiceCalls(sourcePath);
+        findRouteInits(sourcePath);
     }
 
     return res;
