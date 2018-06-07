@@ -22,7 +22,7 @@ mvnw*
 test.db
 *.sqlite
 .mvn
-node_modules
+node_modules/
 
 
 ### NetBeans ###
@@ -35,6 +35,6 @@ nbdist/
 
 #
 *.js
-                          
+
 *.orig
 out-tsc

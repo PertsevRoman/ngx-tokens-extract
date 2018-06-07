@@ -5,19 +5,22 @@
   "main": "./src/index.ts",
   "scripts": {
     "start": "ts-node ./src/index.ts",
-    "build": "",
+    "build": "webpack",
     "pub": "npm version patch && npm run build && npm publish ./dist"
   },
   "author": "pertsev.roman@gmail.com",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^10.3.0",
-    "typescript": "^2.9.1"
+    "ts-loader": "^4.3.1",
+    "ts-node": "^6.0.5",
+    "webpack": "^4.11.1",
+    "webpack-cli": "^3.0.3"
   },
   "dependencies": {
+    "typescript": "^2.9.1",
     "parse5": "^5.0.0",
     "rxjs": "^6.2.0",
-    "ts-node": "^6.0.5",
     "walk": "^2.3.13"
   },
   "publishConfig": {
