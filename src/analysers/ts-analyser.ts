@@ -97,6 +97,7 @@ const delint = (filesSrcs: string[]): string[] => {
                 return [(firstArg as ts.StringLiteral).text];
             case ts.SyntaxKind.ArrayLiteralExpression:
                 return (firstArg as ts.ArrayLiteralExpression).elements
+                    .filter((element: ts.Node) => element.kind === ts.SyntaxKind.StringLiteral)
                     .map((element: ts.StringLiteral) => element.text);
             case ts.SyntaxKind.Identifier:
                 console.warn('WARNING: We cannot extract variable values passed to TranslateService (yet)');
