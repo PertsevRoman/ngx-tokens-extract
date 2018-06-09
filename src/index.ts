@@ -1,4 +1,5 @@
 import * as walk from 'walk';
+import * as path from 'path';
 import {tsFilesParse} from "./analysers/ts-analyser";
 import {htmlFilesParse} from "./analysers/html-analyser";
 import * as rx from 'rxjs';
@@ -6,8 +7,6 @@ import * as rx from 'rxjs';
 import {filter, map, reduce} from 'rxjs/operators';
 import {forkJoin, Observable} from "rxjs/index";
 import * as fs from 'fs';
-
-const srcPath = `D:\\Users\\RAPertsev\\IdeaProjects\\vendor-ui\\src`;
 
 interface FileDescriptor {
     name: string;
@@ -41,6 +40,12 @@ const makeFilesStream = (src: string): rx.Observable<FileDescriptor> => {
 };
 
 (() => {
+    const srcPath = path.resolve(process.argv[0]);
+
+    if (!srcPath && !fs.existsSync(srcPath) && !fs.lstatSync(srcPath).isDirectory()) {
+        return console.error(`Can't find src path argument or it's not directory: ${srcPath}`);
+    }
+
     /**
      *
      * @type {Observable<FileDescriptor>}
