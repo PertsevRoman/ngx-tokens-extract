@@ -1,5 +1,5 @@
 {
-  "name": "extractor",
+  "name": "ngx-extractor",
   "version": "0.1.0",
   "description": "ngx-translate tokent extractor",
   "main": "./src/index.ts",
@@ -12,10 +12,14 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^10.3.0",
+    "copy-webpack-plugin": "^4.5.1",
     "ts-loader": "^4.3.1",
     "ts-node": "^6.0.5",
     "webpack": "^4.11.1",
     "webpack-cli": "^3.0.3"
+  },
+  "bin": {
+    "ngx-extractor": "./bin/ngx-extractor"
   },
   "dependencies": {
     "typescript": "^2.9.1",
