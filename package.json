@@ -4,7 +4,7 @@
   "description": "ngx-translate tokent extractor",
   "main": "./src/index.ts",
   "scripts": {
-    "start": "ts-node ./src/index.ts",
+    "start": "ts-node ./src/index.ts ../vendor-ui/src",
     "build": "webpack",
     "pub": "npm version patch && npm run build && npm publish ./dist"
   },

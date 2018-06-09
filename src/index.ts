@@ -40,11 +40,13 @@ const makeFilesStream = (src: string): rx.Observable<FileDescriptor> => {
 };
 
 (() => {
-    const srcPath = path.resolve(process.argv[0]);
+    const srcPath = path.resolve(process.argv[process.argv.length - 1]);
 
     if (!srcPath && !fs.existsSync(srcPath) && !fs.lstatSync(srcPath).isDirectory()) {
         return console.error(`Can't find src path argument or it's not directory: ${srcPath}`);
     }
+
+    console.log(`src path: ${srcPath}, argv: ${process.argv}`);
 
     /**
      *
@@ -142,7 +144,10 @@ const makeFilesStream = (src: string): rx.Observable<FileDescriptor> => {
         .pipe(filter((fd: FileDescriptor) => i18Names.indexOf(fd.name) > -1))
         .pipe(reduce(fileDescriptorAccumulator, [] as FileDescriptor[]))
         .subscribe((i18nDescriptors: FileDescriptor[]) => {
-            if (!i18nDescriptors.length) return;
+            if (!i18nDescriptors.length) {
+                console.warn(`i18File are not found, path ${srcPath}`);
+                return;
+            }
 
             const tsTokensObserver = pathsObservable
                 .pipe(filter((fd: FileDescriptor) => fd.name.indexOf('.ts') > -1 &&
@@ -171,12 +176,16 @@ const makeFilesStream = (src: string): rx.Observable<FileDescriptor> => {
 
                 i18nDescriptors.forEach((i18File: FileDescriptor) => {
                     const shadowTreeCopy = Object.assign({}, shadowTranslateTree);
-                    const content = JSON.parse(fs.readFileSync(`${i18File.root}\\${i18File.name}`).toString());
+                    const i18FileSrc = `${i18File.root}\\${i18File.name}`;
+
+                    const content = JSON.parse(fs.readFileSync(i18FileSrc).toString());
 
                     fillShadowBranches(shadowTreeCopy, content, i18File.name);
 
                     const translatePath = `${i18File.root}/${i18File.name}`;
                     const dumpContent = JSON.stringify(shadowTreeCopy, replacer, 2);
+
+                    console.log(`i18File write: ${i18FileSrc}, tokens count: ${branches.length}`);
 
                     fs.writeFileSync(translatePath, dumpContent, 'utf8');
                 });
